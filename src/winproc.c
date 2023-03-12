@@ -634,8 +634,8 @@ LRESULT CALLBACK mainWinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			Sizex = getDipx(defSizex);
 			lineChars = (Sizex - 2 * getDipx(7)) / fontWidth;
 			Sizey = getDipy(defSizey);
-			Posx = 0;
-			Posy = GetSystemMetrics(SM_CYFULLSCREEN) + GetSystemMetrics(SM_CYCAPTION) - Sizey;
+			Posx = GetSystemMetrics(SM_CXSCREEN) - GetSystemMetrics(SM_CXFULLSCREEN);
+			Posy = (Posx > 0) ? 0 : GetSystemMetrics(SM_CYFULLSCREEN) + GetSystemMetrics(SM_CYCAPTION) - Sizey;
 			MoveWindow(hwnd, Posx, Posy, Sizex, Sizey, FALSE);
 		}
 		break;
