@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <shellapi.h>
+#include <stdbool.h>
 
 static int fontWidth, fontHeight, lineChars;
 static int textlen = 0;
@@ -32,6 +33,18 @@ LRESULT CALLBACK LLKbHookProc(int code, WPARAM wp, LPARAM lp)
 		SendMessageW(mainWindow, WM_MAIN_HOOK, wp, lp);
 	}
 	return CallNextHookEx(llkbhook, code, wp, lp);
+}
+
+static void calcpos(uint32_t * posx, uint32_t * posy)
+{
+	RECT r = { 0 };
+	SystemParametersInfoW(SPI_GETWORKAREA, 0, &r, 0);
+	
+	bool taskbarright  = (GetSystemMetrics(SM_CXSCREEN) - r.right) != 0;
+	bool taskbartop    = r.top != 0;
+	
+	*posx = taskbarright ? (r.right - Sizex) : (uint32_t)r.left;
+	*posy = (taskbartop || ((*posx) > 0)) ? (uint32_t)r.top : r.bottom + GetSystemMetrics(SM_CYCAPTION) - Sizey;
 }
 
 void startSearchProgram(HWND hwnd)
@@ -634,8 +647,9 @@ LRESULT CALLBACK mainWinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			Sizex = getDipx(defSizex);
 			lineChars = (Sizex - 2 * getDipx(7)) / fontWidth;
 			Sizey = getDipy(defSizey);
-			Posx = GetSystemMetrics(SM_CXSCREEN) - GetSystemMetrics(SM_CXFULLSCREEN);
-			Posy = (Posx > 0) ? 0 : GetSystemMetrics(SM_CYFULLSCREEN) + GetSystemMetrics(SM_CYCAPTION) - Sizey;
+			
+			calcpos(&Posx, &Posy);
+			
 			MoveWindow(hwnd, Posx, Posy, Sizex, Sizey, FALSE);
 		}
 		break;
@@ -744,8 +758,8 @@ LRESULT CALLBACK mainWinProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		Sizex = getDipx(defSizex);
 		lineChars = (Sizex - 2 * getDipx(7)) / fontWidth;
 		Sizey = getDipy(defSizey);
-		Posx = 0;
-		Posy = GetSystemMetrics(SM_CYFULLSCREEN) + GetSystemMetrics(SM_CYCAPTION) - Sizey;
+		
+		calcpos(&Posx, &Posy);
 		MoveWindow(
 			hwnd,
 			Posx, Posy,
